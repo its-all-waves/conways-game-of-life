@@ -1,4 +1,7 @@
 # Example file showing a circle moving on screen
+from ast import Tuple
+from typing import Literal
+from venv import create
 import pygame
 import pygame.gfxdraw
 
@@ -24,6 +27,9 @@ def main():
     running = True
     dt = 0
 
+    # seed the game
+    set_alive((1, 2), (3, 4))
+
     while running:
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
@@ -35,20 +41,9 @@ def main():
         screen.fill("black")
 
         # draw the grid -- can i move this outside the main loop?
-        for i_row in range(len(cells)):
-            pygame.gfxdraw.hline(
-                screen, 
-                0, SCREEN_WIDTH, 
-                (i_row + 1) *  CELL_HEIGHT, 
-                (255, 255, 255)
-            ) 
-            for i_col in range(i_row):
-                pygame.gfxdraw.vline(
-                    screen, 
-                    (i_col + 1) * CELL_WIDTH, 
-                    0, SCREEN_HEIGHT, 
-                    (255, 255, 255)
-                )
+        draw_grid(screen)
+    
+        # 
 
 
         # flip() the display to put your work on screen
@@ -60,7 +55,33 @@ def main():
         dt = clock.tick(60) / 1000
 
     pygame.quit()
+
+
+def draw_grid(screen):
+    for i_row in range(len(cells)):
+        pygame.gfxdraw.hline(
+                screen, 
+                0, SCREEN_WIDTH, 
+                (i_row + 1) *  CELL_HEIGHT, 
+                (255, 255, 255)
+            ) 
+        for i_col in range(i_row):
+            pygame.gfxdraw.vline(
+                    screen, 
+                    (i_col + 1) * CELL_WIDTH, 
+                    0, SCREEN_HEIGHT, 
+                    (255, 255, 255)
+                )
  
+
+# def fill_cell(x, y):
+#     cells[x][y] = True
+
+
+def set_alive(*cell_coords):
+    for cell in cell_coords:
+        cells[cell[0]][cell[1]] = True
+
 
 if __name__ == "__main__":
     main()

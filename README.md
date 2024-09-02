@@ -32,4 +32,5 @@ loop:
 
 ## Roadmap
 
-- create a grid on the screen
+- [x] create a grid on the screen
+- [ ] fill a cell
