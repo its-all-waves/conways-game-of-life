@@ -1,0 +1,10 @@
+{
+    "python.analysis.typeCheckingMode": "basic",
+    "python.linting.pylintArgs": [
+        "--extension-pkg-whitelist=pygame"
+    ],
+    "cSpell.words": [
+        "Pseudocode",
+        "pygame"
+    ]
+}
