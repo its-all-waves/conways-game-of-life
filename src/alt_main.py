@@ -100,8 +100,6 @@ def main():
         pygame.event.pump()
 
     while running:
-        # poll for events
-        # pygame.QUIT event means the user clicked X to close your window
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -111,70 +109,7 @@ def main():
 
         # RENDER YOUR GAME HERE
 
-        # births and deaths occur ___simultaneously___
-        to_enliven: list[Cell] = []
-        to_kill: list[Cell] = []
-
-        def conways_algo():
-            # compute living cells
-            for row in cells:
-                for cell in row:
-                    # count the living cells in the surrounding 8
-                    x, y = cell.grid_pos
-
-                    top_left    =   (x - 1, y - 1)
-                    top_mid     =   (x,     y - 1)
-                    top_right   =   (x + 1, y - 1)
-                    mid_left    =   (x - 1, y    )
-                    
-                    mid_right   =   (x + 1, y    )
-                    bot_left    =   (x - 1, y + 1)
-                    bot_mid     =   (x,     y + 1)
-                    bot_right   =   (x + 1, y + 1)
-
-                    if x == 0:
-                        top_left = mid_left = bot_left = None
-                    elif x == CELL_COUNT_X - 1:
-                        top_right = mid_right = bot_right = None
-                    if y == 0:
-                        top_left = top_mid = top_right = None
-                    elif y == CELL_COUNT_Y - 1:
-                        bot_left = bot_mid = bot_right = None
-
-                    neighbor_grid_coords: list[tuple[int,int] | None] = [
-                        top_left,   top_mid,    top_right,
-                        mid_left,   None,       mid_right,  # None -> don't count this cell
-                        bot_left,   bot_mid,    bot_right
-                    ]
-
-                    living_neighbors = []
-                    for coords in neighbor_grid_coords:
-                        if not coords: continue
-                        neighbor = cell_at(coords)
-                        if not neighbor.is_alive: continue
-                        living_neighbors.append(neighbor)
-
-                    living_neighbors_count = len(living_neighbors)
-
-                    if not cell.is_alive:
-                        # RULE: any dead cell with exactly 3 live neighbors becomes a live cell, as if by reproduction
-                        if living_neighbors_count == 3: 
-                            to_enliven.append(cell)
-
-                    elif cell.is_alive:
-                        # RULE: a live cell with < 2 live neighbors dies
-                        if living_neighbors_count < 2: 
-                            to_kill.append(cell) 
-                            
-                        # RULE: a live cell with two or three live neighbors lives on to next gen 
-                        elif living_neighbors_count in (2, 3): 
-                            continue
-
-                        # RULE: a live cell with > 3 live neighbors dies, as if by overpopulation
-                        elif living_neighbors_count > 3: 
-                            to_kill.append(cell)
-
-        conways_algo()
+        to_kill, to_enliven = conways_algo()
 
         kill(*to_kill)
         enliven(*to_enliven)
@@ -191,6 +126,72 @@ def seed_cells(*cell_coords: tuple[int,int]):
     for coord in cell_coords:
         x, y = coord
         cell_at((x, y)).enliven()
+
+
+def conways_algo():
+    # births and deaths occur ___simultaneously___
+    to_enliven: list[Cell] = []
+    to_kill: list[Cell] = []
+    
+    # compute living cells
+    for row in cells:
+        for cell in row:
+            # count the living cells in the surrounding 8
+            x, y = cell.grid_pos
+
+            top_left    =   (x - 1, y - 1)
+            top_mid     =   (x,     y - 1)
+            top_right   =   (x + 1, y - 1)
+            mid_left    =   (x - 1, y    )
+            
+            mid_right   =   (x + 1, y    )
+            bot_left    =   (x - 1, y + 1)
+            bot_mid     =   (x,     y + 1)
+            bot_right   =   (x + 1, y + 1)
+
+            if x == 0:
+                top_left = mid_left = bot_left = None
+            elif x == CELL_COUNT_X - 1:
+                top_right = mid_right = bot_right = None
+            if y == 0:
+                top_left = top_mid = top_right = None
+            elif y == CELL_COUNT_Y - 1:
+                bot_left = bot_mid = bot_right = None
+
+            neighbor_grid_coords: list[tuple[int,int] | None] = [
+                top_left,   top_mid,    top_right,
+                mid_left,   None,       mid_right,  # None -> don't count this cell
+                bot_left,   bot_mid,    bot_right
+            ]
+
+            living_neighbors = []
+            for coords in neighbor_grid_coords:
+                if not coords: continue
+                neighbor = cell_at(coords)
+                if not neighbor.is_alive: continue
+                living_neighbors.append(neighbor)
+
+            living_neighbors_count = len(living_neighbors)
+
+            if not cell.is_alive:
+                # RULE: any dead cell with exactly 3 live neighbors becomes a live cell, as if by reproduction
+                if living_neighbors_count == 3: 
+                    to_enliven.append(cell)
+
+            elif cell.is_alive:
+                # RULE: a live cell with < 2 live neighbors dies
+                if living_neighbors_count < 2: 
+                    to_kill.append(cell) 
+                    
+                # RULE: a live cell with two or three live neighbors lives on to next gen 
+                elif living_neighbors_count in (2, 3): 
+                    continue
+
+                # RULE: a live cell with > 3 live neighbors dies, as if by overpopulation
+                elif living_neighbors_count > 3: 
+                    to_kill.append(cell)
+        
+    return to_kill, to_enliven
 
 
 def enliven(*cells: Cell):
