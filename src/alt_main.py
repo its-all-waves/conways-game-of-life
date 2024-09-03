@@ -87,12 +87,31 @@ def main():
     screen = pygame.display.set_mode((SCREEN_W_PX, SCREEN_H_PX), 
                                      pygame.SRCALPHA)
     clock = pygame.time.Clock()
-    running = True
+    
+    running = False
+    game_is_seeded = False
 
-    # seed the game
-    seed_cells((0, 0), (1, 1), (1, 2), (2, 2))
-    draw_cells(screen)
-    pygame.display.flip()
+    # await user input to start the game
+    while not running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and not game_is_seeded:
+                    # left click cells to select them for the seed 
+                    game_is_seeded = True
+                    print("\nGAME IS SEEDED\n")
+                if event.button == 3 and game_is_seeded:
+                    # right click starts the game after game is seeded
+                    print("\nGAME STARTED\n")
+                    running = True
+        draw_cells(screen)
+        pygame.display.flip()
+        clock.tick(FPS)
+        
+    # # seed the game
+    # seed_cells((0, 0), (1, 1), (1, 2), (2, 2))
+    # draw_cells(screen)
+    # pygame.display.flip()
     
     # hold the seed for a frame
     start_time = pygame.time.get_ticks()
@@ -104,20 +123,18 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        # fill the screen with a color to wipe away anything from last frame
-        screen.fill("black")
+        screen.fill("black")  # clear the last frame 
 
         # RENDER YOUR GAME HERE
 
         to_kill, to_enliven = conways_algo()
-
         kill(*to_kill)
         enliven(*to_enliven)
 
         draw_cells(screen)
         
-        pygame.display.flip()  # flip() the display to put your work on screen
-        clock.tick(FPS)  # limit FPS
+        pygame.display.flip()   # put work on the screen
+        clock.tick(FPS)         # limit FPS
 
     pygame.quit()
 
