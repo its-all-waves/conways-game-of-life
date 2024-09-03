@@ -37,6 +37,7 @@ loop:
 - [x] give life to cells (fill them)
 - [x] kill living cells (clear them)
 - [x] step the program (increase length of a tick)
+- [x] move the seed out of the main loop
 - [ ] start running on click anywhere in screen
 - [ ] add start button
 - [ ] seed the game by clicking / dragging over cells

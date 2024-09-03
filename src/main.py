@@ -41,7 +41,17 @@ def main():
     running = True
     dt = 0
 
-    generation = 0
+    # seed the game
+    # enliven_cells((0, 0), (1, 1), (1, 2), (2, 2))
+    draw_grid(screen)
+    draw_living_cells(screen)
+    pygame.display.flip()
+    
+    # hold the first frame
+    start_time = pygame.time.get_ticks()
+    while pygame.time.get_ticks() - start_time < FPS * 1000:
+        pygame.event.pump()
+
     while running:
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
@@ -55,22 +65,6 @@ def main():
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # MY CODE
-
-        # TODO: THIS IS STUPID -- how do i get this to hold for a step before the main loop starts?
-        if generation == 0:
-            generation += 1
-            # seed the game
-            enliven_cells(
-                (0, 0),
-                (1, 1),
-                (1, 2), 
-                (2, 2)
-            )
-            draw_grid(screen)
-            draw_living_cells(screen)
-            pygame.display.flip()
-            clock.tick(FPS)
-            continue
 
         # births and deaths occur ___simultaneously___
         to_enliven = set()
