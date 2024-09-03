@@ -4,7 +4,10 @@
         "--extension-pkg-whitelist=pygame"
     ],
     "cSpell.words": [
+        "blit",
         "Pseudocode",
-        "pygame"
+        "pygame",
+        "SRCALPHA",
+        "topleft"
     ]
 }

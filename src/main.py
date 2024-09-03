@@ -1,26 +1,39 @@
 # Example file showing a circle moving on screen
 import os
-from time import sleep
-import time
-from tkinter import Toplevel
-from tokenize import TokenInfo
 
 import pygame
 import pygame.gfxdraw
 
 # constants
+WINDOW_POS_X_PX = 0
+WINDOW_POS_Y_PX = 0
 SCREEN_W_PX = 400
 SCREEN_H_PX = 400
+
+FPS = 1  # frames / sec
+
+GRID_BORDER_X_PX = 100
+GRID_BORDER_Y_PX = 100
+GRID_W_PX = SCREEN_W_PX - GRID_BORDER_X_PX
+GRID_H_PX = SCREEN_H_PX - GRID_BORDER_Y_PX
+
 CELL_COUNT_X = 4
 CELL_COUNT_Y = 4
 CELL_W_PX = SCREEN_W_PX // CELL_COUNT_X
 CELL_H_PX = SCREEN_H_PX // CELL_COUNT_Y
-GRID_COLOR = (255, 255, 255)
-CELL_COLOR = (255, 255, 255)
-BG_COLOR = (0, 0, 0)
-FPS = 1  # frames / sec
-WINDOW_POS_X_PX = 0
-WINDOW_POS_Y_PX = 0
+
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+GRID_COLOR = WHITE
+CELL_COLOR = WHITE
+BG_COLOR = BLACK
+
+
+START_BUTTON_DIM_PX = (GRID_BORDER_X_PX, 100)
+START_BUTTON_POS_PX = (SCREEN_W_PX-1 - START_BUTTON_DIM_PX[0] , 0)
+START_BUTTON_COLOR = GREEN
+
 
 cells: list[list[bool]] = [
     [ False for _ in range(CELL_COUNT_X) ]
@@ -41,16 +54,16 @@ def main():
     running = True
     dt = 0
 
-    # seed the game
+    # # seed the game
     # enliven_cells((0, 0), (1, 1), (1, 2), (2, 2))
-    draw_grid(screen)
-    draw_living_cells(screen)
-    pygame.display.flip()
+    # draw_grid(screen)
+    # draw_living_cells(screen)
+    # pygame.display.flip()
     
-    # hold the first frame
-    start_time = pygame.time.get_ticks()
-    while pygame.time.get_ticks() - start_time < FPS * 1000:
-        pygame.event.pump()
+    # # hold the first frame
+    # start_time = pygame.time.get_ticks()
+    # while pygame.time.get_ticks() - start_time < FPS * 1000:
+    #     pygame.event.pump()
 
     while running:
         # poll for events
@@ -58,9 +71,23 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
+    
         # fill the screen with a color to wipe away anything from last frame
         clear_screen(screen)
+
+        # draw start button
+        start_button_surface = pygame.Surface(START_BUTTON_POS_PX)
+        start_button = pygame.draw.rect(
+            screen,
+            START_BUTTON_COLOR, 
+            pygame.Rect(START_BUTTON_POS_PX, START_BUTTON_DIM_PX),
+        )
+        font = pygame.font.SysFont(None, 24)
+        img = font.render('hello', True, BLACK)
+        start_button_surface.blit(img, start_button.center)
+
+
+
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -156,15 +183,15 @@ def draw_grid(screen):
     for i_row in range(len(cells)):
         pygame.gfxdraw.hline(
                 screen, 
-                0, SCREEN_W_PX, 
-                (i_row + 1) *  CELL_H_PX, 
+                0, GRID_W_PX, 
+                (i_row + 1) * CELL_H_PX, 
                 GRID_COLOR
             ) 
         for i_col in range(i_row):
             pygame.gfxdraw.vline(
                     screen, 
                     (i_col + 1) * CELL_W_PX, 
-                    0, SCREEN_H_PX, 
+                    0, GRID_H_PX, 
                     GRID_COLOR
                 )
 
