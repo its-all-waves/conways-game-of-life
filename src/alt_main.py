@@ -91,6 +91,8 @@ def main():
     running = False
     game_is_seeded = False
 
+    selected_cell_coords: list[tuple[int,int]] = [(0, 0), (1, 1), (1, 2), (2, 2)]
+
     # await user input to start the game
     while not running:
         for event in pygame.event.get():
@@ -98,20 +100,31 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and not game_is_seeded:
                     # left click cells to select them for the seed 
-                    game_is_seeded = True
+                    print("\nSELECTING CELLS\n")
+
+            if event.type == pygame.KEYDOWN \
+                and event.key == pygame.K_RETURN \
+                and len(selected_cell_coords) > 0:
+                    # ENTER KEY saves the selected cells
                     print("\nGAME IS SEEDED\n")
-                if event.button == 3 and game_is_seeded:
-                    # right click starts the game after game is seeded
+                    game_is_seeded = True
+
+            if event.type == pygame.KEYDOWN \
+                and event.key == pygame.K_SPACE \
+                and game_is_seeded:
+                    # SPACE BAR starts game once cells are selected & saved
                     print("\nGAME STARTED\n")
                     running = True
+                
+
         draw_cells(screen)
         pygame.display.flip()
         clock.tick(FPS)
         
     # # seed the game
-    # seed_cells((0, 0), (1, 1), (1, 2), (2, 2))
-    # draw_cells(screen)
-    # pygame.display.flip()
+    seed_cells(*selected_cell_coords)
+    draw_cells(screen)
+    pygame.display.flip()
     
     # hold the seed for a frame
     start_time = pygame.time.get_ticks()
