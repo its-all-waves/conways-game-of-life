@@ -7,6 +7,7 @@ https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 - a cell interacts will all 8 surrounding neighbors
 - the initial pattern is the "seed" of the system
 - each step/generation is a "tick"
+- ___births and deaths occur simultaneously___
 
 1. a live cell with < 2 live neighbors dies
 2. a live cell with two or three live neighbors lives on to next gen
@@ -35,5 +36,9 @@ loop:
 - [x] create a grid on the screen
 - [x] give life to cells (fill them)
 - [x] kill living cells (clear them)
-- [ ] ...
+- [x] step the program (increase length of a tick)
+- [ ] start running on click anywhere in screen
+- [ ] add start button
 - [ ] seed the game by clicking / dragging over cells
+- [ ] indicate when game has ended (all cells have died)
+- [ ] add pause button
