@@ -33,4 +33,7 @@ loop:
 ## Roadmap
 
 - [x] create a grid on the screen
-- [ ] fill a cell
+- [x] give life to cells (fill them)
+- [x] kill living cells (clear them)
+- [ ] ...
+- [ ] seed the game by clicking / dragging over cells
