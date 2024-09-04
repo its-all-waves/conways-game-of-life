@@ -1,23 +1,25 @@
 from dataclasses import dataclass
 import os
+import random
+
 import pygame
 
 
-# constants
 WINDOW_POS_X_PX = 0
 WINDOW_POS_Y_PX = 0
-SCREEN_W_PX = 400
-SCREEN_H_PX = 400
+SCREEN_W_PX = 900
+SCREEN_H_PX = 900
 
-FPS = 5  # frames / sec
+TRUE_FPS = 5  # frames / sec
+# TODO: APPARENT_FPS = 5  # the perceived FPS (we want fps to be slow, but setting it slow results in poor event processing performance / slooow response to user events)
 
 GRID_BORDER_X_PX = 100
 GRID_BORDER_Y_PX = 100
 GRID_W_PX = SCREEN_W_PX - GRID_BORDER_X_PX
 GRID_H_PX = SCREEN_H_PX - GRID_BORDER_Y_PX
 
-CELL_COUNT_X = 12
-CELL_COUNT_Y = 12
+CELL_COUNT_X = 150
+CELL_COUNT_Y = 150
 CELL_W_PX = SCREEN_W_PX // CELL_COUNT_X
 CELL_H_PX = SCREEN_H_PX // CELL_COUNT_Y
 
@@ -30,11 +32,7 @@ BG_COLOR = BLACK
 
 @dataclass
 class Cell:
-    def __init__(
-        self, 
-        grid_x, 
-        grid_y
-    ):
+    def __init__(self, grid_x, grid_y):
         self.is_alive = False
         self.grid_x = grid_x
         self.grid_y = grid_y
@@ -42,19 +40,37 @@ class Cell:
         self.pos_px = (grid_x * CELL_W_PX, grid_y * CELL_H_PX)
         self._surface = pygame.Surface((CELL_W_PX, CELL_H_PX), pygame.SRCALPHA)
 
-    def __repr__(self):
-        return f"Cell({'🔥' if self.is_alive else '💀'}, {self.grid_pos}, {self.pos_px})"
 
-    def draw(self, surface):
+    def __repr__(self):
+        return f"Cell({'🔥' if self.is_alive else '💀'}, {self.grid_pos})"
+
+
+    def draw(self, surface, *, shape='circle', grid_lines=False):
         if self.is_alive:
-            pygame.draw.rect(surface, 
-                             WHITE,
-                             self._surface.get_rect(topleft=self.pos_px))
-        else:
-            pygame.draw.rect(surface, 
-                             GREEN,
-                             self._surface.get_rect(topleft=self.pos_px),
-                             1)  # border only
+            if shape == 'rect' or shape == 'rectangle':
+                pygame.draw.rect(
+                    surface, 
+                    WHITE,
+                    self._surface.get_rect(topleft=self.pos_px)
+                )
+            elif shape == 'circle':
+                x, y = self.pos_px
+                x -= CELL_W_PX // 2
+                y -= CELL_H_PX // 2
+                pygame.draw.circle(
+                    surface,
+                    WHITE,
+                    center=(x, y),
+                    radius=CELL_W_PX // 2
+                )
+        elif not self.is_alive:
+            if grid_lines:
+                pygame.draw.rect(
+                    surface, 
+                    (50, 50, 50),
+                    self._surface.get_rect(topleft=self.pos_px),
+                    1  # border only
+                )
 
 
     def enliven(self):
@@ -74,10 +90,6 @@ cells = [
     for y in range(CELL_COUNT_Y)
 ]
 
-cells: list[list[Cell]]
-
-living_cells: list[pygame.Rect] = []
-
 
 def main():
     # pygame setup
@@ -91,57 +103,67 @@ def main():
     running = False
     game_is_seeded = False
 
-    # selected_cell_coords: list[tuple[int,int]] = [(0, 0), (1, 1), (1, 2), (2, 2)]
     selected_cell_coords: list[tuple[int,int]] = []
+    cell_coords_to_seed: list[tuple[int,int]] = []
 
     # await user input to start the game
     while not running:
         for event in pygame.event.get():
-            print(event)
-            print("\n")
+            
             if event.type == pygame.QUIT: running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and not game_is_seeded:
-                    # left click cells to select them for the seed
+                    # LEFT CLICK cells to select them for the seed
                     selected_cell_coords.append(
-                        cell_grid_pos_from_click(event.pos)
+                        cell_grid_pos_at(event.pos)
                     )
-                    cell = cell_at((cell_grid_pos_from_click(event.pos)))
+                    cell = cell_at((cell_grid_pos_at(event.pos)))
                     cell.enliven()
                     print("\nSELECTING CELLS\n")
 
-            if event.type == pygame.KEYDOWN \
-                and event.key == pygame.K_RETURN \
-                and len(selected_cell_coords) > 0:
+            elif event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_r:
+                    # R KEY randomizes the seed and immediately starts game
+                    cell_coords_to_seed = random_coordinates()
+                    game_is_seeded = True
+                    running = True
+                    
+                elif event.key == pygame.K_RETURN and len(selected_cell_coords) > 0:
                     # ENTER KEY saves the selected cells
                     print("\nGAME IS SEEDED\n")
+                    cell_coords_to_seed = selected_cell_coords
                     game_is_seeded = True
 
-            if event.type == pygame.KEYDOWN \
-                and event.key == pygame.K_SPACE \
-                and game_is_seeded:
+                elif event.key == pygame.K_SPACE and game_is_seeded:
                     # SPACE BAR starts game once cells are selected & saved
                     print("\nGAME STARTED\n")
                     running = True
 
         draw_cells(screen)
         pygame.display.flip()
-        #clock.tick(FPS)
+        # clock.tick(FPS)  # causes problems when FPS is low -- processes events in a frame
         
     # seed the game with user's selection
-    seed_cells(*selected_cell_coords)
+    seed_cells(*cell_coords_to_seed)
     draw_cells(screen)
     pygame.display.flip()
     
     # hold the seed for a frame
     start_time = pygame.time.get_ticks()
-    while pygame.time.get_ticks() - start_time < FPS * 1000:
+    while pygame.time.get_ticks() - start_time < TRUE_FPS / 5 * 1000:
         pygame.event.pump()
 
+    # MAIN LOOP ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+        # TODO: add continue if timer is not what I want
+
 
         screen.fill("black")  # clear the last frame 
 
@@ -154,9 +176,13 @@ def main():
         draw_cells(screen)
         
         pygame.display.flip()   # put work on the screen
-        clock.tick(FPS)         # limit FPS
+        clock.tick(TRUE_FPS)    # limit FPS
+
+    # END MAIN LOOP ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     pygame.quit()
+
+# END MAIN() +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 def seed_cells(*cell_coords: tuple[int,int]):
@@ -246,20 +272,38 @@ def cell_at(grid_pos: tuple[int,int]) -> Cell:
     return cells[y][x]
 
 
-def draw_cells(surface):
+def draw_cells(surface, *, shape='circle', grid_lines=False):
     for row in cells:
         for cell in row:
-            cell.draw(surface)
+            cell.draw(surface, shape=shape, grid_lines=grid_lines)
 
 
-def cell_grid_pos_from_click(mouse_pos):
-    # divide mouse pos components by cell w, h
-    x, y = mouse_pos
-
+def cell_grid_pos_at(pos_px):
+    x, y = pos_px
     cell_x = x // CELL_W_PX
     cell_y = y // CELL_H_PX
-
     return cell_x, cell_y
+
+
+def random_coordinates():
+    # get a rand int bt 0 and total cell count - this is number of rand coords to return
+    rand_count = random.randint(0, CELL_COUNT_X * CELL_COUNT_Y)
+
+    # get populations to pick from 
+    x_choices = tuple(range(CELL_COUNT_X))
+    y_choices = tuple(range(CELL_COUNT_Y))
+
+    # get random choices from these using the random count above
+    
+    x_choices_random = random.choices(population=x_choices, k=rand_count) 
+    y_choices_random = random.choices(population=y_choices, k=rand_count) 
+
+
+    # x_choices_random = random.sample(population=x_choices, k=CELL_COUNT_X)
+    # y_choices_random = random.sample(population=y_choices, k=CELL_COUNT_Y)
+
+
+    return list(zip(x_choices_random, y_choices_random))
 
 
 if __name__ == "__main__":
