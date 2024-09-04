@@ -9,15 +9,15 @@ WINDOW_POS_Y_PX = 0
 SCREEN_W_PX = 400
 SCREEN_H_PX = 400
 
-FPS = 1  # frames / sec
+FPS = 5  # frames / sec
 
 GRID_BORDER_X_PX = 100
 GRID_BORDER_Y_PX = 100
 GRID_W_PX = SCREEN_W_PX - GRID_BORDER_X_PX
 GRID_H_PX = SCREEN_H_PX - GRID_BORDER_Y_PX
 
-CELL_COUNT_X = 4
-CELL_COUNT_Y = 4
+CELL_COUNT_X = 12
+CELL_COUNT_Y = 12
 CELL_W_PX = SCREEN_W_PX // CELL_COUNT_X
 CELL_H_PX = SCREEN_H_PX // CELL_COUNT_Y
 
@@ -91,15 +91,23 @@ def main():
     running = False
     game_is_seeded = False
 
-    selected_cell_coords: list[tuple[int,int]] = [(0, 0), (1, 1), (1, 2), (2, 2)]
+    # selected_cell_coords: list[tuple[int,int]] = [(0, 0), (1, 1), (1, 2), (2, 2)]
+    selected_cell_coords: list[tuple[int,int]] = []
 
     # await user input to start the game
     while not running:
         for event in pygame.event.get():
+            print(event)
+            print("\n")
             if event.type == pygame.QUIT: running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and not game_is_seeded:
-                    # left click cells to select them for the seed 
+                    # left click cells to select them for the seed
+                    selected_cell_coords.append(
+                        cell_grid_pos_from_click(event.pos)
+                    )
+                    cell = cell_at((cell_grid_pos_from_click(event.pos)))
+                    cell.enliven()
                     print("\nSELECTING CELLS\n")
 
             if event.type == pygame.KEYDOWN \
@@ -115,13 +123,12 @@ def main():
                     # SPACE BAR starts game once cells are selected & saved
                     print("\nGAME STARTED\n")
                     running = True
-                
 
         draw_cells(screen)
         pygame.display.flip()
-        clock.tick(FPS)
+        #clock.tick(FPS)
         
-    # # seed the game
+    # seed the game with user's selection
     seed_cells(*selected_cell_coords)
     draw_cells(screen)
     pygame.display.flip()
@@ -234,7 +241,7 @@ def kill(*cells: Cell):
         cell.kill()
 
 
-def cell_at(grid_pos) -> Cell:
+def cell_at(grid_pos: tuple[int,int]) -> Cell:
     x, y = grid_pos
     return cells[y][x]
 
@@ -243,7 +250,17 @@ def draw_cells(surface):
     for row in cells:
         for cell in row:
             cell.draw(surface)
-        
+
+
+def cell_grid_pos_from_click(mouse_pos):
+    # divide mouse pos components by cell w, h
+    x, y = mouse_pos
+
+    cell_x = x // CELL_W_PX
+    cell_y = y // CELL_H_PX
+
+    return cell_x, cell_y
+
 
 if __name__ == "__main__":
     main()
